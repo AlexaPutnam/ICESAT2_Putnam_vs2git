@@ -21,6 +21,9 @@ import lib_read_TG as lTG
 import lib_regions as lreg
 sys.path.append("/Users/alexaputnam/necessary_functions/")
 import plt_bilinear as pbil
+
+LOCDIR = '/Users/alexaputnam/ICESat2/'
+
 '''
 ds = np.load('h5_files/ATL03_20210806092915_06681207_005_01_filtered_on_cuyutlan.npy',allow_pickle='TRUE').item()
 beams = ds.keys()
@@ -188,7 +191,7 @@ def fft2signal(x,y,Nf=30,FreqMax=False):
     return filtered_sig.real,new_freq_arr
 
 
-def pull_icesat(FN,SEG=100,pth='tide_gauge_match/'):
+def pull_icesat(FN,SEG=100,pth=LOCDIR+'tide_gauge_match/'):
     ds2 = np.load(pth+FN)#'reg_atl03_lat_41_lon_n73_newengland_2018_12_to_2019_12.npz'
     kys = list(ds2.keys())
     print(kys)
@@ -234,9 +237,9 @@ def pull_icesat(FN,SEG=100,pth='tide_gauge_match/'):
 
 
 FNis2= 'reg_atl03_lat_19_lon_n105_cuyutlan_segs_2_100_2000_2021_08_to_2021_08.npz'
-ssha_a,lat_a,lon_a,days_since_1985_a,ymdhmsI_a,tsI_a,beam_a,swh_a,N_a,slope_a,skew_a,yrfrac_a = pull_icesat(FNis2,SEG=2,pth='h5_files/')
-ssha_b,lat_b,lon_b,days_since_1985_b,ymdhmsI_b,tsI_b,beam_b,swh_b,N_b,slope_b,skew_b,yrfrac_b = pull_icesat(FNis2,SEG=100,pth='h5_files/')
-ssha_c,lat_c,lon_c,days_since_1985_c,ymdhmsI_c,tsI_c,beam_c,swh_c,N_c,slope_c,skew_c,yrfrac_c = pull_icesat(FNis2,SEG=2000,pth='h5_files/')
+ssha_a,lat_a,lon_a,days_since_1985_a,ymdhmsI_a,tsI_a,beam_a,swh_a,N_a,slope_a,skew_a,yrfrac_a = pull_icesat(FNis2,SEG=2,pth=LOCDIR+'h5_files/')
+ssha_b,lat_b,lon_b,days_since_1985_b,ymdhmsI_b,tsI_b,beam_b,swh_b,N_b,slope_b,skew_b,yrfrac_b = pull_icesat(FNis2,SEG=100,pth=LOCDIR+'h5_files/')
+ssha_c,lat_c,lon_c,days_since_1985_c,ymdhmsI_c,tsI_c,beam_c,swh_c,N_c,slope_c,skew_c,yrfrac_c = pull_icesat(FNis2,SEG=2000,pth=LOCDIR+'h5_files/')
 
 SV_vel = 7000. # ICESat-2 vel = 7km/s
 off_space = 90

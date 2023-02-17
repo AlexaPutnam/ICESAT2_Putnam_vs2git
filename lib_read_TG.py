@@ -30,6 +30,8 @@ import lib_regions as lreg
 sys.path.append("/Users/alexaputnam/necessary_functions/")
 import plt_bilinear as pbil
 
+LOCDIR = '/Users/alexaputnam/ICESat2/'
+
 '''
 
 The station datum, or zero reference level for a tide gauge time series, 
@@ -235,7 +237,7 @@ def pull_TG_noaa_sl(FN):
     # FN = '2020_8452660_met_newport_ri.csv'
     import csv
     results = []
-    with open('tide_gauge/'+FN) as csvfile:
+    with open(LOCDIR+'tide_gauge/'+FN) as csvfile:
         reader = csv.reader(csvfile, quoting=csv.QUOTE_NONNUMERIC) # change contents to floats
         for row in reader: # each row is a list
             results.append(row)
@@ -289,7 +291,7 @@ def read_TG_surftoday(FN):
     if Nfn>1:
         countFN=np.zeros(Nfn)
         for jj in np.arange(Nfn):
-            df = open('tide_gauge/'+FN[jj], "r")
+            df = open(LOCDIR+'tide_gauge/'+FN[jj], "r")
             lines = df.readlines()
             Nl = np.shape(lines)[0]
             countFN[jj] = Nl+1
@@ -299,7 +301,7 @@ def read_TG_surftoday(FN):
         msl = np.empty((Nfn,Nc))*np.nan
         hlt = np.empty((Nfn,Nc))*np.nan
         for jj in np.arange(Nfn):
-            df = open('tide_gauge/'+FN[jj], "r")
+            df = open(LOCDIR+'tide_gauge/'+FN[jj], "r")
             lines = df.readlines()
             Nl = np.shape(lines)[0]
             for ii in np.arange(Nl):
@@ -322,7 +324,7 @@ def read_TG_surftoday(FN):
     else:
         FNi = FN[0]
         print(FNi)
-        df = open('tide_gauge/'+FNi, "r")
+        df = open(LOCDIR+'tide_gauge/'+FNi, "r")
         lines = df.readlines()
         Nl = np.shape(lines)[0]
         yr = FNi[:4]
@@ -631,7 +633,7 @@ def  pull_hawaii_tg(FN):
     lon_tg = np.empty(N)*np.nan
     
     for ii in np.arange(N):
-        ds = Dataset('tide_gauge/'+FN[ii])
+        ds = Dataset(LOCDIR+'tide_gauge/'+FN[ii])
         sl_tg = ds['sea_level'][:].data.squeeze()/1000.
         isl_tg = np.where(np.abs(sl_tg)<20)[0]
         lat_tg[ii] = ds['lat'][:].data[0]
@@ -645,7 +647,7 @@ def  pull_hawaii_tg(FN):
         ymdhms_tg = np.empty((np.nanmax(count),N,6))*np.nan
         yrfrac_tg = np.empty((np.nanmax(count),N))*np.nan
         for ii in np.arange(N):
-            ds = Dataset('tide_gauge/'+FN[ii])
+            ds = Dataset(LOCDIR+'tide_gauge/'+FN[ii])
             sl_tgi = ds['sea_level'][:].data.squeeze()/1000.
             isl_tg = np.where(np.abs(sl_tgi)<20)[0]
             sl_tg[:count[ii],ii] = sl_tgi[isl_tg]
@@ -679,7 +681,7 @@ def  pull_hawaii_tg(FN):
     return sl_tg,lat_tg,lon_tg,days_since_1985_tg,ymdhms_tg,uhslc_id,yrfrac_tg
 
 def pull_altimetry(FN,llmm=[],dll=0.25):
-    ds_alt = Dataset('tide_gauge_match/'+FN)
+    ds_alt = Dataset(LOCDIR+'tide_gauge_match/'+FN)
     lat_alt = ds_alt['lat'][:]
     lon_alt = ds_alt['lon'][:]
     ssha_alt = ds_alt['sla'][:]
@@ -693,7 +695,7 @@ def pull_altimetry(FN,llmm=[],dll=0.25):
         ssha_alt,lat_alt,lon_alt,days_since_1985_alt,ymdhmsA,tsA,swh_alt,yrfracA = ssha_alt[idx],lat_alt[idx],lon_alt[idx],days_since_1985_alt[idx],ymdhmsA[idx],tsA[idx],swh_alt[idx],yrfracA[idx]
     return ssha_alt,lat_alt,lon_alt,days_since_1985_alt,ymdhmsA,tsA,swh_alt,yrfracA
     
-def pull_icesat(FN,SEG=100,pth='tide_gauge_match/',llmm_fix=[],dll=0.1):
+def pull_icesat(FN,SEG=100,pth=LOCDIR+'tide_gauge_match/',llmm_fix=[],dll=0.1):
     ds2 = np.load(pth+FN,allow_pickle=True)#'reg_atl03_lat_41_lon_n73_newengland_2018_12_to_2019_12.npz'
     kys = list(ds2.keys())
     print(kys)
