@@ -15,9 +15,36 @@ from pyTMD.infer_minor_corrections import infer_minor_corrections
 from pyTMD.predict_tidal_ts import predict_tidal_ts
 from pyTMD.read_FES_model import extract_FES_constants
 
-def ocean_tide_replacement(lon,lat,utc_time,model_dir):
+def gps2utc(gps_time):
+    '''
+    Converts GPS time that ICESat-2 references to UTC
+    '''
+    t0 = datetime.datetime(1980,1,6,0,0,0,0)
+    leap_seconds = -18 #applicable to everything after 2017-01-01, UTC is currently 18 s behind GPS
+    dt = (gps_time + leap_seconds) * datetime.timedelta(seconds=1)
+    utc_time = t0+dt
+    utc_time_str = np.asarray([str(x) for x in utc_time])
+    return utc_time_str
+
+'''
+import h5py
+import datetime as dt
+f12 = '/Users/alexaputnam/ICESat2/atlcu_v_atl12/ATL12_20220314200251_12611401_005_01.h5'
+d12 = h5py.File(f12, 'r')
+ibms = 'gt1l'
+time_gps = d12['/'+ibms+'/ssh_segments/delta_time'][:]+d12['/ancillary_data/atlas_sdp_gps_epoch'] # mean time of surface photons in segment
+gps2utc2 = (dt.datetime(1985, 1, 1,0,0,0)-dt.datetime(1980, 1, 6,0,0,0)).total_seconds()
+time_utc = time_gps-gps2utc2-18
+time_utc2 = gps2utc(time_gps) # datetime.datetime.strptime(time_utc2[0], '%Y-%m-%d %H:%M:%S.%f')
+lat_12 = d12['/'+ibms+'/ssh_segments/latitude'][:] # mean lat of surface photons in segment
+lon_12 = d12['/'+ibms+'/ssh_segments/longitude'][:]
+lon,lat,utc_time=lon_12[:2],lat_12[:2],time_utc2[:2]
+model_dir='/Users/alexaputnam/ICESat2/'
+'''
+def ocean_tide_replacement(lon,lat,utc_time,model_dir='/Users/alexaputnam/ICESat2/'):
     '''
     #Given a set of lon,lat and utc time, computes FES2014 tidal elevations
+    dsot = Dataset('/Users/alexaputnam/ICESat2/fes2014/ocean_tide/2n2.nc')
     '''
     delta_file = pyTMD.utilities.get_data_path(['data','merged_deltat.data'])
     model = pyTMD.model(model_dir,format='netcdf',compressed=False).elevation('FES2014')
@@ -36,6 +63,7 @@ def ocean_tide_replacement(lon,lat,utc_time,model_dir):
         seconds_since_midnight = [a.hour*3600 + a.minute*60 + a.second + a.microsecond/1000000 for a in time_unique_date]
         idx_time = np.asarray([np.argmin(abs(t - seconds)) for t in seconds_since_midnight])
         tide_time = pyTMD.time.convert_calendar_dates(YMD.year,YMD.month,YMD.day,second=seconds)
+        ## extract_FES_constants takes a lot of time!
         amp,ph = extract_FES_constants(np.atleast_1d(lon_unique_date),
                 np.atleast_1d(lat_unique_date), model.model_file, TYPE=model.type,
                 VERSION=model.version, METHOD='spline', EXTRAPOLATE=False,
@@ -48,8 +76,8 @@ def ocean_tide_replacement(lon,lat,utc_time,model_dir):
             if np.any(amp[i].mask) == True:
                 tmp_tide_heights[i] = np.nan
             else:
-                TIDE =         predict_tidal_ts(np.atleast_1d(tide_time[idx_time[i]]),np.ma.array(data=[hc.data[i]],mask=[hc.mask[i]]),constituents,DELTAT=DELTAT[idx_time[i]],CORRECTIONS=model.format)
-                MINOR = infer_minor_corrections(np.atleast_1d(tide_time[idx_time[i]]),np.ma.array(data=[hc.data[i]],mask=[hc.mask[i]]),constituents,DELTAT=DELTAT[idx_time[i]],CORRECTIONS=model.format)
+                TIDE = predict_tidal_ts(np.atleast_1d(tide_time[idx_time[i]]),np.ma.array(data=[hc.data[i]],mask=[hc.mask[i]]),constituents,deltat=DELTAT[idx_time[i]],corrections=model.format)
+                MINOR = infer_minor_corrections(np.atleast_1d(tide_time[idx_time[i]]),np.ma.array(data=[hc.data[i]],mask=[hc.mask[i]]),constituents,deltat=DELTAT[idx_time[i]],corrections=model.format)
                 TIDE.data[:] += MINOR.data[:]
                 tmp_tide_heights[i] = TIDE.data
         tide_heights[idx_unique_date] = tmp_tide_heights

@@ -14,6 +14,10 @@ import time
 from scipy.stats import skew
 from global_land_mask import globe
 from matplotlib import pyplot as plt
+import datetime
+
+
+import ocean_tide as ot
 
 
 def pull_is2_atl12_beams(fn_is2_12,BEAM=[],LLMM=[]):
@@ -148,15 +152,36 @@ def pull_is2_atl12_var(ds,beam,LLMM,ds_var={},ORIENT=True):
 
 
 
+def gps2utc(gps_time):
+    '''
+    Converts GPS time that ICESat-2 references to UTC
+    '''
+    t0 = datetime.datetime(1980,1,6,0,0,0,0)
+    leap_seconds = -18 #applicable to everything after 2017-01-01, UTC is currently 18 s behind GPS
+    dt = (gps_time + leap_seconds) * datetime.timedelta(seconds=1)
+    utc_time = t0+dt
+    utc_time_str = np.asarray([str(x) for x in utc_time])
+    return utc_time_str
 
-f12 = 'atlcu_v_atl12/ATL12_20220314200251_12611401_005_01.h5'
-f3s = 'atlcu_v_atl12/ATL03_20220314230424_12621414_005_01_filtered_on_diego_garcia.npy'
-f3w = 'atlcu_v_atl12/ATL03_20220314230424_12621414_005_01_filtered_off_diego_garcia.npy'
-f3 = 'atlcu_v_atl12/reg_atl03_lat_n8_lon_72_diego_garcia_segs_2_100_2000_2022_03_to_2022_03_MSS.npz'
-f3m = 'atlcu_v_atl12/reg_atl03_lat_n8_lon_72_diego_garcia_segs_2_100_2000_2022_03_to_2022_03.npz'
+f12 = '/Users/alexaputnam/ICESat2/atlcu_v_atl12/ATL12_20220314200251_12611401_005_01.h5'
+f3s = '/Users/alexaputnam/ICESat2/atlcu_v_atl12/ATL03_20220314230424_12621414_005_01_filtered_on_diego_garcia.npy'
+f3w = '/Users/alexaputnam/ICESat2/atlcu_v_atl12/ATL03_20220314230424_12621414_005_01_filtered_off_diego_garcia.npy'
+f3 = '/Users/alexaputnam/ICESat2/atlcu_v_atl12/reg_atl03_lat_n8_lon_72_diego_garcia_segs_2_100_2000_2022_03_to_2022_03_MSS.npz'
+f3m = '/Users/alexaputnam/ICESat2/atlcu_v_atl12/reg_atl03_lat_n8_lon_72_diego_garcia_segs_2_100_2000_2022_03_to_2022_03.npz'
 
 #d3s = np.load(f3s,allow_pickle='TRUE', encoding='bytes').item()
 #beams3s = d3s.keys()
+d12 = h5py.File(f12, 'r')
+ibms = 'gt1l'
+time_gps = d12['/'+ibms+'/ssh_segments/delta_time'][:]+d12['/ancillary_data/atlas_sdp_gps_epoch'] # mean time of surface photons in segment
+gps2utc2 = (dt.datetime(1985, 1, 1,0,0,0)-dt.datetime(1980, 1, 6,0,0,0)).total_seconds()
+time_utc = time_gps-gps2utc2-18
+time_utc2 = gps2utc(time_gps) # datetime.datetime.strptime(time_utc2[0], '%Y-%m-%d %H:%M:%S.%f')
+lat_12 = d12['/'+ibms+'/ssh_segments/latitude'][:] # mean lat of surface photons in segment
+lon_12 = d12['/'+ibms+'/ssh_segments/longitude'][:]
+f14_12 = ot.ocean_tide_replacement(lon_12[:2],lat_12[:2],time_utc2[:2])
+
+# check: (datetime.datetime.strptime(time_utc2[0], '%Y-%m-%d %H:%M:%S.%f')-(dt.datetime(1985, 1, 1,0,0,0))).total_seconds()
 d3 = np.load(f3)
 d3m = np.load(f3m)
 kys3 = list(d3.keys())
@@ -178,6 +203,9 @@ time100m = d3m['time']
 lon100m = d3m['lon']
 lat100m= d3m['lat']
 LLMM = [np.nanmin(lat2),np.nanmax(lat2),np.nanmin(lon2),np.nanmax(lon2)]
+
+f14_100 = ot.ocean_tide_replacement(lon100,lat100,stime100)
+
 
 plt.figure()
 plt.plot(time100-time100[0],dem100,'.')
