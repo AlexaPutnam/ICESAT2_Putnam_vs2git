@@ -15,6 +15,7 @@ from scipy.stats import skew
 from global_land_mask import globe
 from matplotlib import pyplot as plt
 import datetime
+import time
 
 
 import ocean_tide as ot
@@ -155,6 +156,7 @@ def pull_is2_atl12_var(ds,beam,LLMM,ds_var={},ORIENT=True):
 def gps2utc(gps_time):
     '''
     Converts GPS time that ICESat-2 references to UTC
+    gps_time = time_gps
     '''
     t0 = datetime.datetime(1980,1,6,0,0,0,0)
     leap_seconds = -18 #applicable to everything after 2017-01-01, UTC is currently 18 s behind GPS
@@ -162,6 +164,17 @@ def gps2utc(gps_time):
     utc_time = t0+dt
     utc_time_str = np.asarray([str(x) for x in utc_time])
     return utc_time_str
+
+def utc2utc_stamp(time_utc):
+    gps2utc2 = (datetime.datetime(1985, 1, 1,0,0,0)-datetime.datetime(1980, 1, 6,0,0,0)).total_seconds()
+    gps_time = time_utc+gps2utc2+18
+    t0 = datetime.datetime(1980,1,6,0,0,0,0)
+    leap_seconds = -18 #applicable to everything after 2017-01-01, UTC is currently 18 s behind GPS
+    dt = (gps_time + leap_seconds) * datetime.timedelta(seconds=1)
+    utc_time = t0+dt
+    utc_time_str = np.asarray([str(x) for x in utc_time])
+    return utc_time_str
+
 
 f12 = '/Users/alexaputnam/ICESat2/atlcu_v_atl12/ATL12_20220314200251_12611401_005_01.h5'
 f3s = '/Users/alexaputnam/ICESat2/atlcu_v_atl12/ATL03_20220314230424_12621414_005_01_filtered_on_diego_garcia.npy'
@@ -176,10 +189,15 @@ ibms = 'gt1l'
 time_gps = d12['/'+ibms+'/ssh_segments/delta_time'][:]+d12['/ancillary_data/atlas_sdp_gps_epoch'] # mean time of surface photons in segment
 gps2utc2 = (dt.datetime(1985, 1, 1,0,0,0)-dt.datetime(1980, 1, 6,0,0,0)).total_seconds()
 time_utc = time_gps-gps2utc2-18
+time_utc=utc2utc_stamp(time_utc)
 time_utc2 = gps2utc(time_gps) # datetime.datetime.strptime(time_utc2[0], '%Y-%m-%d %H:%M:%S.%f')
 lat_12 = d12['/'+ibms+'/ssh_segments/latitude'][:] # mean lat of surface photons in segment
 lon_12 = d12['/'+ibms+'/ssh_segments/longitude'][:]
-f14_12 = ot.ocean_tide_replacement(lon_12[:2],lat_12[:2],time_utc2[:2])
+N = 100
+
+t1 = time.time()
+f14_12 = ot.ocean_tide_replacement(lon_12[:N],lat_12[:N],time_utc2[:N])
+print('total time for '+str(N)+' points: '+str(np.round(time.time()-t1)/60)+' min')
 
 # check: (datetime.datetime.strptime(time_utc2[0], '%Y-%m-%d %H:%M:%S.%f')-(dt.datetime(1985, 1, 1,0,0,0))).total_seconds()
 d3 = np.load(f3)
