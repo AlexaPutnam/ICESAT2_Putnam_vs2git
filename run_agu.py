@@ -250,7 +250,7 @@ def subseg_to_seg(subseg,tsubseg,tseg):
 ########### INPUT ###########
 ###################################
 # Region/Time
-REG = 'lagos' #'mumbai'#'north_atlantic'#'ittoqqortoormiit' #'newengland','hawaii','antarctica', 'japan'
+REG = 'newengland' #'mumbai'#'north_atlantic'#'ittoqqortoormiit' #'newengland','hawaii','antarctica', 'japan'
 if REG=='hunga_tonga':
     yrs_mm = [2021,2022]
 elif REG=='newengland':
@@ -1664,8 +1664,8 @@ var2 = str(np.round(np.nanstd((ssha_fft_b)*100.),2))+' cm'
 ichk = np.where((yrfrac_b>=2021)&(yrfrac_b<2022))[0]
 pbil.groundtracks_multi(lon_b[ichk],lat_b[ichk],((swh66_b[ichk]/4)**2-(swh_b[ichk]/4)**2),'ICESat-2 variance reduction of 100 m SSHA segments with wave signal removed vs. not removed \n blue indicates improvement with wave signal removal','$\Delta$ var(ssha) [m$^2$]',
                     cm='coolwarm',vmin=-.1,vmax=.1,FN=[],proj=180.,fc='0.1',s1=10,figsize=[12,5],TB=[0.85,0.4]) #REG+' '+str(yrs_mm)
-lat_grid,lon_grid,dssha_grid_var,dssha_grid_varXX = lTG.gridded(((swh66_b[ichk]/4)**2-(swh_b[ichk]/4)**2),lat_b[ichk],lon_b[ichk],lat_minmax=lat_minmax_b,lon_minmax=lon_minmax_b,dl=0.25)
-pbil.groundtracks_contour(np.unique(lon_grid),np.unique(lat_grid),dssha_grid_var,'ICESat-2 variance reduction of 100 m SSHA segments with wave signal removed vs. not removed \n blue indicates improvement with wave signal removal','$\Delta$ var(ssha) [m$^2$]',
+dlat_grid,dlon_grid,dssha_grid_var,dssha_grid_varXX = lTG.gridded(((swh66_b[ichk]/4)**2-(swh_b[ichk]/4)**2),lat_b[ichk],lon_b[ichk],lat_minmax=lat_minmax_b,lon_minmax=lon_minmax_b,dl=0.25)
+pbil.groundtracks_contour(np.unique(dlon_grid),np.unique(dlat_grid),dssha_grid_var,'ICESat-2 variance reduction of 100 m SSHA segments with wave signal removed vs. not removed \n blue indicates improvement with wave signal removal','$\Delta$ var(ssha) [m$^2$]',
                     cm='coolwarm',vmin=-0.1,vmax=0.1,FN=[],proj=180.,fc='0.1',LEV=np.arange(-0.1,0.101,.001),figsize=[12,8],TB=[0.9,0.4])
 
 plt.figure()

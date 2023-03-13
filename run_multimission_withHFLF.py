@@ -130,7 +130,7 @@ def fft2signal(x,y,Nf=20):
 ########### INPUT ###########
 ###################################
 # Region/Time
-REG = 'north_atlantic'#'north_atlantic'#'ittoqqortoormiit' #'newengland','hawaii','antarctica', 'japan'
+REG = 'newengland'#'north_atlantic'#'ittoqqortoormiit' #'newengland','hawaii','antarctica', 'japan'
 yrs_mm = [2021]
 fp_a = 2
 fp_b = 100
@@ -208,7 +208,7 @@ if np.size(FNs3)!=0:
 # IceSat2
 if SEG2==True:
     ## 2-m segment 
-    ssha_a,ssha_fft_a,swell_hf_a,swell_lf_a,swell_a,lat_a,lon_a,days_since_1985_a,ymdhmsI_a,tsI_a,beam_a,swh_a,swh66_a,N_a,slope_a,skew_a,yrfrac_a,wl_seg_a,wsteep_seg_a,ip_lf_a,ip_hf_a,ip_a = lTG.pull_icesat(FNis2,SEG=2)
+    ssha_a,ssha_fft_a,swell_hf_a,swell_lf_a,swell_a,lat_a,lon_a,days_since_1985_a,ymdhmsI_a,tsI_a,beam_a,swh_a,swh66_a,N_a,slope_a,skew_a,yrfrac_a,wl_seg_a,wsteep_seg_a,ip_lf_a,ip_hf_a,ip_a,OT_a = lTG.pull_icesat(FNis2,SEG=2)
     iS_a = np.where((lat_a>=41.55)&(lat_a<=41.7)&(lon_a>=-71)&(lon_a<=-70.5))[0]
     swh_aadj = 0.056 + 7.83*(swh_a/4.0)
     #mn_ssha_a,vr_ssha_a,mn_time_a = lTG.month_2_month(ymdhmsI_a,ssha_a,yrs_mm)
@@ -216,7 +216,7 @@ if SEG2==True:
     #mn_swh_aadj,vr_swh_aadj,mn_time_a = lTG.month_2_month(ymdhmsI_a,swh_aadj,yrs_mm)
 
 ## 100-m segment
-ssha_b,ssha_fft_b,swell_hf_b,swell_lf_b,swell_b,lat_b,lon_b,days_since_1985_b,ymdhmsI_b,tsI_b,beam_b,swh_b,swh66_b,N_b,slope_b,skew_b,yrfrac_b,wl_seg_b,wsteep_seg_b,ip_lf_b,ip_hf_b,ip_b = lTG.pull_icesat(FNis2,SEG=fp_b)
+ssha_b,ssha_fft_b,swell_hf_b,swell_lf_b,swell_b,lat_b,lon_b,days_since_1985_b,ymdhmsI_b,tsI_b,beam_b,swh_b,swh66_b,N_b,slope_b,skew_b,yrfrac_b,wl_seg_b,wsteep_seg_b,ip_lf_b,ip_hf_b,ip_b,OT_b = lTG.pull_icesat(FNis2,SEG=fp_b)
 swh_badj = 0.523 + 5.393*(swh_b/4.0)
 #wgt_b,dist_b = lTG.select_region(lat_b,lon_b,lat_tg[0],lon_tg[0],dlat=1,dlon=1)
 #mn_ssha_b,vr_ssha_b,mn_time_b = lTG.month_2_month(ymdhmsI_b,ssha_b,yrs_mm)#,LATLON = np.vstack((lat_b,lon_b)).T) #ymdhmsI_b[idx_b],ssha_b[idx_b],days_since_1985_b[idx_b]
@@ -225,7 +225,7 @@ swh_badj = 0.523 + 5.393*(swh_b/4.0)
 #mn_swh_badj,vr_swh_badj,mn_time_b = lTG.month_2_month(ymdhmsI_b,swh_badj,yrs_mm)
 #mn_slope_b,vr_slope_b,mn_time_b = lTG.month_2_month(ymdhmsI_b,slope_b,yrs_mm)
 ## 2000-m segment
-ssha_c,ssha_fft_c,swell_hf_c,swell_lf_c,swell_c,lat_c,lon_c,days_since_1985_c,ymdhmsI_c,tsI_c,beam_c,swh_c,swh66_c,N_c,slope_c,skew_c,yrfrac_c,wl_seg_c,wsteep_seg_c,ip_lf_c,ip_hf_c,ip_c = lTG.pull_icesat(FNis2,SEG=fp_c)
+ssha_c,ssha_fft_c,swell_hf_c,swell_lf_c,swell_c,lat_c,lon_c,days_since_1985_c,ymdhmsI_c,tsI_c,beam_c,swh_c,swh66_c,N_c,slope_c,skew_c,yrfrac_c,wl_seg_c,wsteep_seg_c,ip_lf_c,ip_hf_c,ip_c,OT_c = lTG.pull_icesat(FNis2,SEG=fp_c)
 #mn_swh_c,vr_swh_c,mn_time_c = lTG.month_2_month(ymdhmsI_c,swh_c,yrs_mm)
 
         

@@ -636,11 +636,12 @@ def dt_utc_tt(utc_time):
     return dt,tide_time
 
 
-def ocean_tide_replacement(lon,lat,utc_time,LOAD,method='spline'):
+def ocean_tide_replacement(lon,lat,time_datetime,LOAD,method='spline'):
+    # lon,lat,utc_time,LOAD,method=lon100[:N],lat100[:N],time_utc[:N],False,'spline'
     # https://github.com/tsutterley/pyTMD/blob/main/pyTMD/model.py   class model(pyTMD.io.model)
     NC = pull_model(LOAD)
     constituents = NC['constituents']
-    time_datetime = np.asarray(list(map(datetime.datetime.fromisoformat,utc_time)))
+    #time_datetime = np.asarray(list(map(datetime.datetime.fromisoformat,utc_time)))
     unique_date_list = np.unique([a.date() for a in time_datetime])
     tide_heights = np.empty(len(lon),dtype=np.float32)
     for unique_date in unique_date_list: #i.e. 2022-03-14
@@ -672,16 +673,26 @@ def utc2utc_stamp(time_utc):
     gps_time = time_utc+gps2utc2+18
     t0 = datetime.datetime(1980,1,6,0,0,0,0)
     leap_seconds = -18 #applicable to everything after 2017-01-01, UTC is currently 18 s behind GPS
+    #"""
+    N = np.shape(time_utc)[0]
+    utc_time_str = []
+    for ii in np.arange(N):
+        dt = datetime.timedelta(seconds=(gps_time[ii] + leap_seconds)) #(gps_time + leap_seconds) * datetime.timedelta(seconds=1)
+        utc_time_str.append((t0+dt))
+    utc_time_str = np.asarray(utc_time_str)
+    """
     dt = (gps_time + leap_seconds) * datetime.timedelta(seconds=1)
     utc_time = t0+dt
     utc_time_str = np.asarray([str(x) for x in utc_time])
+    """
     return utc_time_str
 
-'''
+#'''
 # test
 fn = '/Users/alexaputnam/ICESat2/ana_fes2014/reg_atl03_lat_41_lon_n73_newengland_segs_2_100_2000_2020_12_to_2021_03.npz'
 #d3s = np.load(f3s,allow_pickle='TRUE', encoding='bytes').item()
 #beams3s = d3s.keys()
+import time
 d3 = np.load(fn)
 ssha_fft100 = d3['ssha_fft']
 time100 = d3['time'] # from time_utc_mean_cu100
@@ -690,15 +701,17 @@ lat100= d3['lat']
 dem100= d3['dem']
 ot100= d3['ocean_tide']
 time_utc = utc2utc_stamp(time100) # datetime.datetime.strptime(time_utc2[0], '%Y-%m-%d %H:%M:%S.%f')
-N = 10#np.size(lon100)
+N = 5000#np.size(lon100)
 t1 = time.time()
 f14_ocean,DELTAT,unique_date_list = ocean_tide_replacement(lon100[:N],lat100[:N],time_utc[:N],LOAD=False,method='spline')
+print('total time for '+str(N)+' points: '+str(np.round(time.time()-t1)/60)+' min using edited model')
 f14_load,DELTAT,unique_date_list = ocean_tide_replacement(lon100[:N],lat100[:N],time_utc[:N],LOAD=True,method='spline')
 f14_geo_ocean = f14_ocean+f14_load
-print('total time for '+str(N)+' points: '+str(np.round(time.time()-t1)/60)+' min using edited model')
 
+#'''
 import ocean_tide as ot
 t1 = time.time()
-f14_12_truth,DELTAT_truth = ot.ocean_tide_replacement(lon100[:N],lat100[:N],time_utc[:N])
+utc_truth = np.asarray([str(x) for x in time_utc[:N]])
+f14_12_truth,DELTAT_truth = ot.ocean_tide_replacement(lon100[:N],lat100[:N],utc_truth)
 print('total time for '+str(N)+' points: '+str(np.round(time.time()-t1)/60)+' min using truth model')
-'''
+#'''
